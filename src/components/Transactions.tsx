@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchTransactions, createTransaction, fetchEntities } from "@/src/lib/api";
+import { fetchTransactions, createTransaction } from "@/src/lib/api";
 import { useStore } from "@/src/store/useStore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency } from "@/lib/utils";
 import { parseTransactionText } from "@/src/lib/gemini";
-import { Loader2, Plus, Sparkles, ReceiptText, Settings2, Eye, EyeOff, ChevronUp, ChevronDown, FileUp, Check } from "lucide-react";
+import { Loader2, Plus, Sparkles, Settings2, Eye, EyeOff, ChevronUp, ChevronDown, FileUp, Check, ArrowDownLeft, ArrowUpRight, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { motion, AnimatePresence } from "framer-motion";
 
 type ColumnKey = "date" | "description" | "category" | "notes" | "amount";
 
@@ -39,6 +40,7 @@ export function TransactionsPage() {
   const [nlpText, setNlpText] = useState("");
   const [isParsing, setIsParsing] = useState(false);
   const [columns, setColumns] = useState<ColumnDef[]>(DEFAULT_COLUMNS);
+  const [searchTerm, setSearchTerm] = useState("");
   
   const { data: transactions } = useQuery({ 
     queryKey: ["transactions", currentEntity?.id], 
@@ -100,110 +102,125 @@ export function TransactionsPage() {
 
   const visibleColumns = columns.filter(c => c.visible);
 
+  const filteredTransactions = transactions?.filter((tx: any) => 
+    tx.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    tx.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="space-y-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8 p-8"
+    >
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Transaction Pipeline</h1>
-          <p className="text-muted-foreground">Intelligent ingestion and normalization of financial data</p>
+        <div className="space-y-1">
+          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">Transaction Pipeline</h1>
+          <p className="text-gray-400 font-bold tracking-[0.1em] text-xs uppercase">Intelligent ingestion and synthesis of financial intelligence</p>
+        </div>
+        <div className="flex items-center gap-3">
+            <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#00D4FF] transition-colors" size={16} />
+                <Input 
+                    placeholder="SCAN LEDGER..." 
+                    className="pl-10 bg-[#0e1117]/80 border-white/10 h-11 w-72 text-[10px] font-black tracking-widest focus:border-[#00D4FF]/50 transition-all rounded-xl shadow-2xl"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Button variant="outline" className="bg-[#0e1117]/80 border-white/10 h-11 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-white/5 transition-all text-gray-300">
+                <Filter size={14} /> FILTER
+            </Button>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Direct Ingestion</CardTitle>
-            <CardDescription>Manual or AI-assisted entry</CardDescription>
+      <div className="grid gap-8 lg:grid-cols-4">
+        <Card className="lg:col-span-1 border-white/5 bg-[#0e1117]/80 backdrop-blur-3xl p-6 relative overflow-hidden group flex flex-col">
+          <CardHeader className="p-0 mb-6 relative z-10">
+            <div className="flex items-center gap-2 mb-1">
+                <div className="h-1 w-4 bg-[#00D4FF] rounded-full" />
+                <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-[#00D4FF]">Direct Ingestion</CardTitle>
+            </div>
+            <CardDescription className="text-[10px] uppercase font-bold text-gray-500 ml-6">Intel Protocol v4.0</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="ai">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="ai" className="gap-2">
-                    <Sparkles size={16} /> AI Smart
+          <CardContent className="p-0 relative z-10 flex-1">
+            <Tabs defaultValue="ai" className="w-full h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-3 bg-white/5 p-1 rounded-xl h-10">
+                <TabsTrigger value="ai" className="gap-1.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-[#00D4FF] data-[state=active]:text-black transition-all rounded-lg h-full">
+                    <Sparkles size={11} /> AI
                 </TabsTrigger>
-                <TabsTrigger value="csv" className="gap-2">
-                    <FileUp size={16} /> CSV
+                <TabsTrigger value="csv" className="gap-1.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-emerald-500 data-[state=active]:text-white transition-all rounded-lg h-full">
+                    <FileUp size={11} /> CSV
                 </TabsTrigger>
-                <TabsTrigger value="manual" className="gap-2">
-                    <Plus size={16} /> Manual
+                <TabsTrigger value="manual" className="gap-1.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-violet-500 data-[state=active]:text-white transition-all rounded-lg h-full">
+                    <Plus size={11} /> NEW
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="ai" className="pt-4">
-                <form onSubmit={handleNlpSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nlp">Describe transaction</Label>
+              <TabsContent value="ai" className="pt-6 flex-1 flex flex-col">
+                <form onSubmit={handleNlpSubmit} className="space-y-4 flex-1 flex flex-col">
+                  <div className="space-y-2 flex-1">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00D4FF]/70">Neural Synthesis Input</Label>
                     <textarea
-                      id="nlp"
                       value={nlpText}
                       onChange={(e) => setNlpText(e.target.value)}
-                      placeholder="e.g. spent 500 on groceries or received 5000 salary"
-                      className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Input natural language context..."
+                      className="min-h-[160px] w-full rounded-xl border border-white/10 bg-black/40 px-4 py-4 text-sm font-medium text-white placeholder:text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#00D4FF]/40 transition-all resize-none shadow-inner"
                     />
                   </div>
-                  <Button type="submit" className="w-full gap-2" disabled={isParsing || !currentEntity}>
-                    {isParsing && <Loader2 className="animate-spin" size={16} />}
-                    Process with AI
+                  <Button type="submit" className="w-full h-12 rounded-xl bg-[#00D4FF] text-black font-black uppercase tracking-[0.2em] text-[11px] hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_30px_rgba(0,212,255,0.3)]" disabled={isParsing || !currentEntity}>
+                    {isParsing ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+                    Process Synthesis
                   </Button>
                 </form>
               </TabsContent>
 
-              <TabsContent value="csv" className="pt-4">
+              <TabsContent value="csv" className="pt-6">
                 <CsvUploadForm entityId={currentEntity?.id} onComplete={() => mutation.mutate({} as any)} />
               </TabsContent>
 
-              <TabsContent value="manual" className="pt-4">
+              <TabsContent value="manual" className="pt-6">
                  <ManualEntryForm entityId={currentEntity?.id} onComplete={() => mutation.mutate({} as any)} />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <div>
-                <CardTitle>Structured Transactions</CardTitle>
-                <CardDescription>Canonical data model output</CardDescription>
+        <Card className="lg:col-span-3 border-white/5 bg-[#0e1117]/80 backdrop-blur-3xl overflow-hidden p-0 relative shadow-2xl">
+           <CardHeader className="flex flex-row items-center justify-between p-7 border-b border-white/5 bg-white/5">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                    <div className="h-1 w-4 bg-[#00D4FF] rounded-full" />
+                    <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-[#00D4FF]">Structured Ledger Output</CardTitle>
+                </div>
+                <CardDescription className="text-[11px] uppercase font-bold text-gray-500 ml-6">Authenticated Cluster Record</CardDescription>
               </div>
               <Popover>
                 <PopoverTrigger render={
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Settings2 size={14} /> Customize Columns
+                  <Button variant="ghost" size="sm" className="h-8 group hover:bg-white/5 px-3 rounded-lg border border-white/5">
+                    <Settings2 size={14} className="text-gray-500 group-hover:text-white transition-colors" />
                   </Button>
                 } />
-                <PopoverContent className="w-64 p-3" align="end">
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold border-b pb-2">Toggle & Reorder Columns</h4>
+                <PopoverContent className="w-64 bg-[#1c1f26] border-white/5 p-4 rounded-2xl backdrop-blur-xl shadow-2xl" align="end">
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#00D4FF] border-b border-white/5 pb-2">Toggle & Reorder Columns</h4>
                     <div className="space-y-2">
                       {columns.map((col, index) => (
-                        <div key={col.key} className="flex items-center gap-2 group transition-all">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                            onClick={() => moveColumn(index, 'up')}
-                            disabled={index === 0}
-                          >
-                            <ChevronUp size={12} />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                            onClick={() => moveColumn(index, 'down')}
-                            disabled={index === columns.length - 1}
-                          >
-                            <ChevronDown size={12} />
-                          </Button>
+                        <div key={col.key} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all group">
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => moveColumn(index, 'up')} disabled={index === 0} className="hover:text-white text-gray-600 disabled:opacity-20"><ChevronUp size={12} /></button>
+                            <button onClick={() => moveColumn(index, 'down')} disabled={index === columns.length - 1} className="hover:text-white text-gray-600 disabled:opacity-20"><ChevronDown size={12} /></button>
+                          </div>
                           <Checkbox 
                             id={`col-${col.key}`} 
                             checked={col.visible} 
                             onCheckedChange={() => toggleColumn(col.key)} 
+                            className="bg-white/5 border-white/10"
                           />
-                          <Label htmlFor={`col-${col.key}`} className="flex-1 cursor-pointer text-sm">
+                          <Label htmlFor={`col-${col.key}`} className="flex-1 cursor-pointer text-xs font-bold text-gray-400 group-hover:text-white transition-colors">
                             {col.label}
                           </Label>
-                          {col.visible ? <Eye size={12} className="text-muted-foreground" /> : <EyeOff size={12} className="text-destructive/50" />}
+                          {col.visible ? <Eye size={12} className="text-[#00D4FF]/60" /> : <EyeOff size={12} className="text-rose-500/40" />}
                         </div>
                       ))}
                     </div>
@@ -211,57 +228,92 @@ export function TransactionsPage() {
                 </PopoverContent>
               </Popover>
            </CardHeader>
-           <CardContent>
-              <div className="rounded-md border">
+           <CardContent className="p-0">
+              <div className="overflow-x-auto">
                 <Table>
-                    <TableHeader>
-                        <TableRow>
+                    <TableHeader className="bg-white/5">
+                        <TableRow className="border-none hover:bg-transparent">
                             {visibleColumns.map(col => (
-                              <TableHead key={col.key} className={col.key === 'amount' ? "text-right" : ""}>
+                              <TableHead key={col.key} className={cn(
+                                "text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 h-14",
+                                col.key === 'amount' ? "text-right pr-8" : "pl-8"
+                              )}>
                                 {col.label}
                               </TableHead>
                             ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {transactions?.map((tx: any) => (
-                            <TableRow key={tx.id}>
-                                {visibleColumns.map(col => {
-                                  if (col.key === 'date') return (
-                                    <TableCell key={col.key} className="text-xs text-muted-foreground font-medium">
-                                      {new Date(tx.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                  );
-                                  if (col.key === 'description') return (
-                                    <TableCell key={col.key} className="font-semibold text-xs md:text-sm text-foreground">
-                                      {tx.description}
-                                    </TableCell>
-                                  );
-                                  if (col.key === 'category') return (
-                                    <TableCell key={col.key}>
-                                      <Badge variant={tx.confidenceScore && Number(tx.confidenceScore) < 0.7 ? "outline" : "secondary"} className="text-[10px] uppercase">
-                                          {tx.category}
-                                      </Badge>
-                                    </TableCell>
-                                  );
-                                  if (col.key === 'notes') return (
-                                    <TableCell key={col.key} className="text-xs text-muted-foreground/80 italic truncate max-w-[100px] group-hover:text-muted-foreground transition-colors">
-                                      {tx.notes}
-                                    </TableCell>
-                                  );
-                                  if (col.key === 'amount') return (
-                                    <TableCell key={col.key} className={cn("text-right font-bold tabular-nums", tx.type === 'income' ? "text-emerald-500" : "text-rose-500")}>
-                                      {tx.type === 'income' ? "+" : "-"}{formatCurrency(tx.amount)}
-                                    </TableCell>
-                                  );
-                                  return null;
-                                })}
-                            </TableRow>
-                        ))}
-                        {(!transactions || transactions.length === 0) && (
+                        <AnimatePresence mode="popLayout">
+                            {filteredTransactions?.map((tx: any, i: number) => (
+                                <motion.tr
+                                    key={tx.id || i}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="border-b border-white/5 hover:bg-white/[0.02] transition-all group"
+                                >
+                                    {visibleColumns.map(col => {
+                                      if (col.key === 'date') return (
+                                        <TableCell key={col.key} className="pl-8 py-5">
+                                          <div className="flex flex-col">
+                                            <span className="text-[11px] font-black text-gray-100 uppercase letter tracking-tighter">
+                                                {new Date(tx.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase mt-0.5">
+                                                {new Date(tx.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                      );
+                                      if (col.key === 'description') return (
+                                        <TableCell key={col.key} className="pl-8 py-5">
+                                          <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                {tx.type === 'income' ? <ArrowDownLeft className="text-emerald-500" size={14} /> : <ArrowUpRight className="text-rose-500" size={14} />}
+                                            </div>
+                                            <span className="font-bold text-xs text-white uppercase tracking-tight">
+                                                {tx.description}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                      );
+                                      if (col.key === 'category') return (
+                                        <TableCell key={col.key} className="pl-8 py-5">
+                                          <Badge variant="outline" className={cn(
+                                              "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border-white/10",
+                                              tx.type === 'income' ? "bg-emerald-500/10 text-emerald-500" : "bg-[#00D4FF]/10 text-[#00D4FF]"
+                                          )}>
+                                              {tx.category}
+                                          </Badge>
+                                        </TableCell>
+                                      );
+                                      if (col.key === 'notes') return (
+                                        <TableCell key={col.key} className="pl-8 py-5">
+                                          <span className="text-[10px] font-medium text-gray-400 italic truncate max-w-[150px] block opacity-70">
+                                            {tx.notes || "No additional context"}
+                                          </span>
+                                        </TableCell>
+                                      );
+                                      if (col.key === 'amount') return (
+                                        <TableCell key={col.key} className="pr-8 py-5 text-right">
+                                          <div className={cn(
+                                            "text-sm font-black tabular-nums tracking-tighter",
+                                            tx.type === 'income' ? "text-emerald-500" : "text-rose-500"
+                                          )}>
+                                            {tx.type === 'income' ? "+" : "-"}{formatCurrency(tx.amount)}
+                                          </div>
+                                        </TableCell>
+                                      );
+                                      return null;
+                                    })}
+                                </motion.tr>
+                            ))}
+                        </AnimatePresence>
+                        {(!filteredTransactions || filteredTransactions.length === 0) && (
                             <TableRow>
-                                <TableCell colSpan={visibleColumns.length} className="h-24 text-center text-muted-foreground">
-                                    No transactions recorded yet.
+                                <TableCell colSpan={visibleColumns.length} className="h-48 text-center text-gray-600 font-black uppercase tracking-widest text-[10px]">
+                                    Pipeline Empty • Waiting for ingestion
                                 </TableCell>
                             </TableRow>
                         )}
@@ -271,7 +323,7 @@ export function TransactionsPage() {
            </CardContent>
         </Card>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -295,33 +347,33 @@ function CsvUploadForm({ entityId, onComplete }: { entityId?: string, onComplete
         <div className="space-y-4">
             <div 
                 className={cn(
-                    "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all",
-                    isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20 bg-muted/20",
-                    file ? "border-emerald-500/50 bg-emerald-500/5" : ""
+                    "relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all h-[240px]",
+                    isDragging ? "border-[#00D4FF] bg-[#00D4FF]/5" : "border-white/5 bg-white/5",
+                    file ? "border-emerald-500/50 bg-emerald-500/5 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : ""
                 )}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) setFile(f); }}
             >
                 {file ? (
-                    <div className="flex flex-col items-center gap-2 text-center">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
-                            <Check size={24} />
+                    <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                            <Check size={28} />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-foreground">{file.name}</p>
-                            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB • Ready to process</p>
+                            <p className="text-xs font-black text-white uppercase tracking-tight">{file.name}</p>
+                            <p className="text-[10px] text-emerald-500/60 font-black uppercase tracking-widest mt-1">Ready for synthesis</p>
                         </div>
-                        <Button variant="ghost" size="sm" className="mt-2 text-rose-500" onClick={() => setFile(null)}>Remove</Button>
+                        <Button variant="ghost" size="sm" className="mt-2 text-rose-500/60 hover:text-rose-500 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-widest" onClick={() => setFile(null)}>Cancel</Button>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center gap-3 text-center">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <FileUp size={24} />
+                    <div className="flex flex-col items-center gap-4 text-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-gray-500">
+                            <FileUp size={28} />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-foreground">Upload CSV Statement</p>
-                            <p className="text-xs text-muted-foreground font-medium">Drag and drop or click to browse</p>
+                            <p className="text-xs font-black text-white uppercase tracking-widest">Upload Statement</p>
+                            <p className="text-[10px] text-gray-600 font-bold uppercase mt-1">Drag and drop or browse CSV</p>
                         </div>
                         <Input 
                             type="file" 
@@ -334,18 +386,13 @@ function CsvUploadForm({ entityId, onComplete }: { entityId?: string, onComplete
             </div>
 
             <Button 
-                className="w-full gap-2" 
+                className="w-full h-12 rounded-2xl bg-emerald-500 text-white font-black uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]" 
                 disabled={!file || isProcessing || !entityId}
                 onClick={handleUpload}
             >
-                {isProcessing ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                {isProcessing ? "Analyzing Batch..." : "Normalize & Import Batch"}
+                {isProcessing ? <Loader2 className="animate-spin" size={16} /> : <FileUp size={16} />}
+                {isProcessing ? "Analyzing Pipeline..." : "Process Batch"}
             </Button>
-            
-            <div className="rounded-lg bg-muted/30 p-3 text-[10px] text-muted-foreground leading-relaxed">
-                <p className="font-bold uppercase tracking-widest text-primary mb-1">CSV Template</p>
-                Expected: date, description, amount, category, type
-            </div>
         </div>
     );
 }
@@ -363,6 +410,7 @@ function ManualEntryForm({ entityId, onComplete }: { entityId?: string, onComple
             setAmount("");
             setDescription("");
             setNotes("");
+            setCategory("");
         }
     });
 
@@ -371,57 +419,59 @@ function ManualEntryForm({ entityId, onComplete }: { entityId?: string, onComple
         if (!entityId) return toast.error("Select entity");
         mutation.mutate({
             entityId,
-            amount,
+            amount: Number(amount),
             type,
             category,
+            rawCategory: category,
             description,
             notes,
         });
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+    };    return (
+        <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label>Amount</Label>
+                    <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Value</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-2.5 text-xs font-black text-[#00D4FF] uppercase">$</span>
                       <Input 
                         type="number" 
                         value={amount} 
-                        onChange={(e) => setAmount(e.target.value)} 
-                        className="pl-7"
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="pl-8 bg-white/5 border-white/10 h-11 rounded-xl text-[14px] font-black text-white focus:ring-[#00D4FF]/30 transition-all"
                         placeholder="0.00"
                         required 
                       />
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <Label>Type</Label>
+                    <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Type</Label>
                     <Select value={type} onValueChange={setType}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white/5 border-white/10 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-white px-4">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="income">Income</SelectItem>
-                            <SelectItem value="expense">Expense</SelectItem>
+                        <SelectContent className="bg-[#1c1f26] border-white/10 rounded-xl">
+                            <SelectItem value="income" className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Income</SelectItem>
+                            <SelectItem value="expense" className="text-[10px] font-black uppercase tracking-widest text-rose-500">Expense</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
             </div>
             <div className="space-y-2">
-                <Label>Category</Label>
-                <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Food, Salary" required />
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Category</Label>
+                <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. FOOD, SALARY..." className="bg-white/5 border-white/10 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-white px-4" required />
             </div>
             <div className="space-y-2">
-                <Label>Description</Label>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Description</Label>
+                <Input value={description} onChange={(e) => setDescription(e.target.value)} className="bg-white/5 border-white/10 h-11 rounded-xl text-xs font-medium text-white px-4" />
             </div>
             <div className="space-y-2">
-                <Label>Notes</Label>
-                <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional context..." />
+                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Contextual Notes</Label>
+                <Input value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-white/5 border-white/10 h-11 rounded-xl text-[10px] font-medium text-white px-4" />
             </div>
-            <Button type="submit" variant="secondary" className="w-full">Create Transaction</Button>
+            <Button type="submit" variant="secondary" className="w-full h-12 rounded-xl bg-violet-600 text-white font-black uppercase tracking-[0.2em] text-[11px] hover:bg-violet-500 transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] gap-2">
+                <Check size={16} className="text-[#00D4FF] drop-shadow-[0_0_8px_#00D4FF]" />
+                Commit to Ledger
+            </Button>
         </form>
     );
 }

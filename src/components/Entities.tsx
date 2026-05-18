@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Building2, User, Factory, HeartPulse, School, GraduationCap, Users, Plus, Check, Briefcase, Pencil } from "lucide-react";
+import { Building2, User, Factory, HeartPulse, School, GraduationCap, Users, Plus, Check, Briefcase, Pencil, Workflow, ShieldAlert, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -22,12 +22,16 @@ import { cn } from "@/lib/utils";
 export const entityConfig: Record<string, { icon: any, color: string, bg: string }> = {
   individual: { icon: User, color: "text-blue-500", bg: "bg-blue-500/10" },
   company: { icon: Building2, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+  business: { icon: Briefcase, color: "text-pink-500", bg: "bg-pink-500/10" },
   factory: { icon: Factory, color: "text-amber-500", bg: "bg-amber-500/10" },
+  retail: { icon: Workflow, color: "text-orange-500", bg: "bg-orange-500/10" },
   hospital: { icon: HeartPulse, color: "text-rose-500", bg: "bg-rose-500/10" },
   school: { icon: School, color: "text-violet-500", bg: "bg-violet-500/10" },
   university: { icon: GraduationCap, color: "text-cyan-500", bg: "bg-cyan-500/10" },
   organization: { icon: Users, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  business: { icon: Briefcase, color: "text-pink-500", bg: "bg-pink-500/10" },
+  government: { icon: ShieldAlert, color: "text-red-500", bg: "bg-red-500/10" },
+  nonprofit: { icon: HeartPulse, color: "text-sky-500", bg: "bg-sky-500/10" },
+  startup: { icon: Zap, color: "text-yellow-500", bg: "bg-yellow-500/10" },
 };
 
 export function EntitiesPage() {
@@ -122,10 +126,14 @@ export function EntitiesPage() {
                       <SelectItem value="company">Company</SelectItem>
                       <SelectItem value="business">Business</SelectItem>
                       <SelectItem value="factory">Factory</SelectItem>
+                      <SelectItem value="retail">Retail</SelectItem>
                       <SelectItem value="hospital">Hospital</SelectItem>
                       <SelectItem value="school">School</SelectItem>
                       <SelectItem value="university">University</SelectItem>
                       <SelectItem value="organization">Organization</SelectItem>
+                      <SelectItem value="government">Government</SelectItem>
+                      <SelectItem value="nonprofit">Non-Profit</SelectItem>
+                      <SelectItem value="startup">Start-up</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -216,10 +224,14 @@ export function EntitiesPage() {
                   <SelectItem value="company">Company</SelectItem>
                   <SelectItem value="business">Business</SelectItem>
                   <SelectItem value="factory">Factory</SelectItem>
+                  <SelectItem value="retail">Retail</SelectItem>
                   <SelectItem value="hospital">Hospital</SelectItem>
                   <SelectItem value="school">School</SelectItem>
                   <SelectItem value="university">University</SelectItem>
                   <SelectItem value="organization">Organization</SelectItem>
+                  <SelectItem value="government">Government</SelectItem>
+                  <SelectItem value="nonprofit">Non-Profit</SelectItem>
+                  <SelectItem value="startup">Start-up</SelectItem>
                 </SelectContent>
               </Select>
             </div>

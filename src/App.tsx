@@ -12,6 +12,9 @@ import { EntitiesPage } from "./components/Entities";
 import { AnalysisPipeline } from "./components/AnalysisPipeline";
 import { RecoveryPlan } from "./components/RecoveryPlan";
 import { FinancialAnalysis } from "./components/FinancialAnalysis";
+import Analytics from "./components/Analytics";
+import Risk from "./components/Risk";
+import Insights from "./components/Insights";
 import Settings from "./components/Settings";
 import { LoginPage } from "./components/auth/LoginPage";
 import { RegisterPage } from "./components/auth/RegisterPage";
@@ -42,6 +45,9 @@ export default function App() {
               <Route path="/analysis" element={<AnalysisPipeline />} />
               <Route path="/recovery-plan" element={<RecoveryPlan />} />
               <Route path="/financial-stats" element={<FinancialAnalysis />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/risk" element={<Risk />} />
+              <Route path="/insights" element={<Insights />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </DashboardLayout>

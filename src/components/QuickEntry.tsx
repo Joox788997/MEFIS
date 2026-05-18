@@ -7,11 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlusCircle, Sparkles, TrendingUp, TrendingDown, LayoutDashboard } from "lucide-react";
+import { PlusCircle, Sparkles, TrendingUp, TrendingDown, LayoutDashboard, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export function QuickEntry() {
+interface QuickEntryProps {
+  customTrigger?: React.ReactElement;
+}
+
+export function QuickEntry({ customTrigger }: QuickEntryProps) {
   const { currentEntity } = useStore();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
@@ -69,21 +73,25 @@ export function QuickEntry() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger render={
-        <Button className="gap-2 shadow-lg" size="lg">
-          <PlusCircle size={18} />
-          <span>Quick Intel Entry</span>
-        </Button>
-      } />
-      <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader className="border-b pb-4">
-          <DialogTitle className="flex items-center gap-2 text-foreground">
+      {customTrigger ? (
+        <DialogTrigger render={customTrigger} />
+      ) : (
+        <DialogTrigger render={
+          <Button className="gap-2 shadow-lg" size="lg">
+            <PlusCircle size={18} />
+            <span>Quick Intel Entry</span>
+          </Button>
+        } />
+      )}
+      <DialogContent className="sm:max-w-[425px] bg-[#0e1117] border-white/10 text-white">
+          <DialogHeader className="border-b border-white/5 pb-4">
+          <DialogTitle className="flex items-center gap-2 text-white">
              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-inner">
-                <Sparkles size={20} />
+                <Sparkles size={20} className="text-[#00D4FF]" />
              </div>
              Unified Transaction Pipeline
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground font-medium pt-1">
+          <DialogDescription className="text-gray-400 font-medium pt-1">
             Enter financial behavior for intelligent normalization and analysis.
           </DialogDescription>
         </DialogHeader>
@@ -93,7 +101,7 @@ export function QuickEntry() {
              <Button 
                 type="button"
                 variant={type === "income" ? "default" : "outline"}
-                className={cn("flex-1 gap-2", type === "income" && "bg-emerald-600 hover:bg-emerald-700")}
+                className={cn("flex-1 gap-2 border-white/10", type === "income" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "text-gray-400 hover:text-white")}
                 onClick={() => setType("income")}
              >
                 <TrendingUp size={16} /> Income
@@ -101,7 +109,7 @@ export function QuickEntry() {
              <Button 
                 type="button"
                 variant={type === "expense" ? "default" : "outline"}
-                className={cn("flex-1 gap-2", type === "expense" && "bg-rose-600 hover:bg-rose-700")}
+                className={cn("flex-1 gap-2 border-white/10", type === "expense" ? "bg-rose-600 hover:bg-rose-700 text-white" : "text-gray-400 hover:text-white")}
                 onClick={() => setType("expense")}
              >
                 <TrendingDown size={16} /> Expense
@@ -110,15 +118,15 @@ export function QuickEntry() {
 
           <div className="grid gap-4">
             <div className="space-y-2 group">
-              <Label htmlFor="amount" className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">Numeric Amount</Label>
+              <Label htmlFor="amount" className="text-xs font-black uppercase tracking-wider text-gray-500 group-hover:text-[#00D4FF] transition-colors">Numeric Amount</Label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-muted-foreground font-bold">$</span>
+                <span className="absolute left-3 top-2.5 text-[#00D4FF] font-black">$</span>
                 <Input 
                    id="amount" 
                    type="number" 
                    step="0.01"
                    placeholder="0.00" 
-                   className="pl-8 text-xl font-black text-foreground bg-muted/20 border-muted-foreground/10"
+                   className="pl-8 text-xl font-black text-white bg-white/5 border-white/10 focus:ring-[#00D4FF]/30"
                    value={amount}
                    onChange={(e) => setAmount(e.target.value)}
                    required
@@ -127,12 +135,12 @@ export function QuickEntry() {
             </div>
 
             <div className="space-y-2 group">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">Category Allocation</Label>
+              <Label className="text-xs font-black uppercase tracking-wider text-gray-500 group-hover:text-[#00D4FF] transition-colors">Category Allocation</Label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="bg-muted/20 border-muted-foreground/10 text-foreground font-semibold">
+                <SelectTrigger className="bg-white/5 border-white/10 text-white font-semibold">
                   <SelectValue placeholder="Select or type category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#1c1f26] border-white/10 text-white">
                   {commonCategories.map(c => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
@@ -142,40 +150,40 @@ export function QuickEntry() {
               {category === "Other" && (
                  <Input 
                     placeholder="Enter custom category..." 
-                    className="mt-2"
+                    className="mt-2 bg-white/5 border-white/10 text-white"
                     onChange={(e) => setCategory(e.target.value === "" ? "Other" : e.target.value)}
                  />
               )}
             </div>
 
             <div className="space-y-2 group">
-              <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">Behavior Explanation</Label>
+              <Label htmlFor="desc" className="text-xs font-black uppercase tracking-wider text-gray-500 group-hover:text-[#00D4FF] transition-colors">Behavior Explanation</Label>
               <Input 
                  id="desc" 
                  placeholder="e.g. Monthly maintenance fee" 
-                 className="bg-muted/20 border-muted-foreground/10 text-foreground"
+                 className="bg-white/5 border-white/10 text-white"
                  value={description}
                  onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
             <div className="space-y-2 group">
-              <Label htmlFor="notes" className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">Additional Notes</Label>
+              <Label htmlFor="notes" className="text-xs font-black uppercase tracking-wider text-gray-500 group-hover:text-[#00D4FF] transition-colors">Additional Notes</Label>
               <Input 
                  id="notes" 
                  placeholder="Optional internal notes..." 
-                 className="bg-muted/20 border-muted-foreground/10 text-foreground"
+                 className="bg-white/5 border-white/10 text-white"
                  value={notes}
                  onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full gap-2" size="lg" disabled={isProcessing || mutation.isPending}>
+          <Button type="submit" className="w-full gap-2 bg-[#00D4FF] text-black font-black hover:bg-[#00D4FF]/80" size="lg" disabled={isProcessing || mutation.isPending}>
              {isProcessing || mutation.isPending ? (
                 <Sparkles className="animate-pulse" size={18} />
              ) : (
-                <LayoutDashboard size={18} />
+                <Zap size={18} />
              )}
              Incorporate and Analyze
           </Button>

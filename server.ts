@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./src/db/schema.ts";
 import { eq, sql } from "drizzle-orm";
+import { GoogleGenAI } from "@google/genai";
 
 const { Pool } = pg;
 
@@ -14,6 +15,16 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Gemini Setup
+  const genAI = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY || "",
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      }
+    }
+  });
+
   // Database Connection
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -22,6 +33,37 @@ async function startServer() {
 
   // API Routes
   
+  // Gemini Chat
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      
+      const model = "gemini-3-flash-preview";
+      const systemInstruction = `You are MEFIS (Multi-Entity Financial Intelligence System) Research Assistant.
+      You help users analyze financial data across multiple entities (businesses/organizations).
+      The database schema includes:
+      - entities: (id, name, type, metadata)
+      - departments: (id, entityId, name, budget)
+      - transactions: (id, entityId, departmentId, amount, type (income/expense), category, description, confidenceScore)
+      - users: (id, fullName, email)
+      
+      Provide concise, technical, and data-driven insights. If the user asks for analysis, explain the trends you might find in such a dataset.
+      Respond in Markdown and use monospace for data points. Be helpful and professional.`;
+
+      const chat = genAI.chats.create({
+        model,
+        config: { systemInstruction },
+        history: history || []
+      });
+
+      const result = await chat.sendMessage({ message });
+      res.json({ text: result.text });
+    } catch (error) {
+      console.error("Gemini Error:", error);
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
   // Entities
   app.get("/api/entities", async (req, res) => {
     try {
